@@ -34,4 +34,4 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Run Photon Game
-        run: python src/main.py
+        run: python -m src.main
