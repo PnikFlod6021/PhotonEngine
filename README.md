@@ -1,6 +1,9 @@
 PHOTON GAME
 
-Instructions : TBD
+Instructions : 
+  pip3 install -r requirements.txt //Install Dependencies
+  python main.py //run application
+  
 
 Team 9 Members:
 
