@@ -2,7 +2,7 @@ import sqlite3
 
 # define connector
 def connect_data():
-    return sqlite3.connect('photon.db')
+    return sqlite3.connect('../../photon.db')
 
 # define cursor
 def init_db():
