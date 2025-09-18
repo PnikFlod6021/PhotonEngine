@@ -3,7 +3,7 @@ import pygame
 
 from src.views.loading_screen import LoadingScreen
 from src.constants import ScreenConstants
-from database import connect_data, init_db, list_players, clear_players
+from database import connect_data, init_db, list_players, clear_players, search
 
 
 GAME_TITLE = "Photon"
@@ -21,17 +21,17 @@ def main():
     loading_screen.load_starting_screen()
 
     # add players
-    def add_player(name):
+    def add_player(codename):
         con = connect_data()
         cursor = con.cursor()
-        cursor.execute("INSERT INTO players (name) VALUES (?)",(name, ))
+        cursor.execute("INSERT INTO players (name) VALUES (?)",(codename, ))
         con.commit()
         con.close()
     
     # Test adding players
-    clear_players()
-    add_player("Jane")
-    add_player("Bob")
+    # clear_players()
+    add_player("Opus")
+    add_player("Scooby")
     print("Players: ")
     for player in list_players():
         print(player)

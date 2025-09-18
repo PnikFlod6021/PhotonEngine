@@ -32,6 +32,13 @@ def clear_players():
      con.commit()
      con.close()
 
+def search():
+     con = connect_data()
+     cursor = con.cursor()
+     cursor.execute("SELECT id FROM players WHERE id = ?")
+     con.commit()
+     con.close()
+
 
 
 
