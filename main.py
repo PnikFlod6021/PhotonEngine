@@ -1,6 +1,5 @@
 import pygame
 
-
 from src.views.loading_screen import LoadingScreen
 from src.constants import ScreenConstants
 from database import connect_data, init_db, list_players, clear_players, search
