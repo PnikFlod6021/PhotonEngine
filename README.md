@@ -3,8 +3,6 @@ _________________________________________________________________
 
 Instructions : 
 
-sudo apt-get install python3-tk //run if Tkinter is not found
-
 pip3 install -r requirements.txt //Install Dependencies
 
 python main.py //run application
