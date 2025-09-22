@@ -25,7 +25,7 @@ class PlayerEntryGUI:
         title_label.grid(row=0, column = 0, columnspan=5, pady=(5, 0), sticky="n")
 
         # Create team frames
-        tk.Frame(self.root, bg="#000000", width=50).grid(row=1, column=0)
+        
         red_frame = tk.LabelFrame(self.root, 
                           text="RED TEAM", 
                           bg=RED_TEAM_BG, 
@@ -45,7 +45,9 @@ class PlayerEntryGUI:
         red_frame.grid(row=1, column=1)
         green_frame.grid(row=1, column=2)
 
-        tk.Frame(self.root, bg="#000000", width=50).grid(row=1,column=4)
+        # Black spacers for team frame row
+        tk.Frame(self.root, bg="#000000", width=100).grid(row=1, column=0)
+        tk.Frame(self.root, bg="#000000", width=100).grid(row=1,column=4)
 
         # Add player rows
         for i in range(19):
@@ -62,15 +64,18 @@ class PlayerEntryGUI:
         game_mode_label = tk.Label(self.root, text="Game Mode: Standard public mode", bg="#2E2E2E", fg="white")
         game_mode_label.grid(row=2, column=0, columnspan=5, sticky="n")
 
+        # Black spacer
+        tk.Frame(self.root, bg="#000000", height=30).grid(row=3, column=0, columnspan=5)
+
         # Function key buttons
         button_frame = tk.Frame(self.root)
-        button_frame.grid(row=3, column=0, columnspan=5)
+        button_frame.grid(row=4, column=0, columnspan=5)
         for i, label in enumerate(["F1: New Game", "F2: Load Game", "F3: Save Game", "F4: Save As", "F5: Print", "F6: Print Setup", "F7: Exit"]):
             tk.Button(button_frame, text=label).grid(row=0, column=i, padx=2)
 
         # Status bar
         status = tk.Label(self.root, text="<Del> to Delete Player, <Ins> to Manually Insert, or edit codename", bd=1, relief=tk.SUNKEN, anchor=tk.CENTER)
-        status.grid(row=4, column=0, columnspan=5, sticky="we")
+        status.grid(row=5, column=0, columnspan=5, sticky="we")
 
         self.root.mainloop()
 
