@@ -32,12 +32,21 @@ def clear_players():
      con.commit()
      con.close()
 
-def search():
+def wipe_data():
      con = connect_data()
      cursor = con.cursor()
-     cursor.execute("SELECT id FROM players WHERE id = ?")
+     cursor.execute("DELETE FROM players")
+     cursor.execute("DELETE FROM sqlite_sequence WHERE name='players'")
      con.commit()
      con.close()
+
+def search(player_id):
+     con = connect_data()
+     cursor = con.cursor()
+     cursor.execute("SELECT * FROM players WHERE id = ?", (player_id,))
+     row = cursor.fetchone()
+     con.close()
+     return row
 
 
 

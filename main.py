@@ -3,7 +3,7 @@ import pygame
 
 from src.views.loading_screen import LoadingScreen
 from src.constants import ScreenConstants
-from database import connect_data, init_db, list_players, clear_players, search
+from database import connect_data, init_db, list_players, clear_players, search, wipe_data
 
 
 GAME_TITLE = "Photon"
@@ -28,13 +28,21 @@ def main():
         con.commit()
         con.close()
     
+    # when we are through testing, uncomment below to clear the database and add legit players
+    wipe_data
+
+
     # Test adding players
-    # clear_players()
     add_player("Opus")
     add_player("Scooby")
-    print("Players: ")
-    for player in list_players():
-        print(player)
+    # uncomment if needing to see database
+    # print("Players: ")
+    # for player in list_players():
+    #     print(player)
+
+    # test searching database by id
+    print(search(2))
+    print(search(7))
 
     running = True
     while running:
@@ -47,4 +55,6 @@ def main():
 
 if __name__ == "__main__":
     init_db()
+    # uncomment when debugging to reset database to add 'real' players/create legit database, remove before final
+    # wipe_data()
     main()
