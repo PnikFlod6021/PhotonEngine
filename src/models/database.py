@@ -1,50 +1,53 @@
-import sqlite3
+import psycopg2
+from psycopg2 import sql
+
+
+# connection parameters
+connection_params = {
+     'dbname' : 'photon',
+     'user' : 'student',
+}
 
 # define connector
 def connect_data():
-    return sqlite3.connect('../../photon.db')
+    return psycopg2.connect(**connection_params)
 
 # define cursor
-def init_db():
-    con = connect_data()
-    cursor = con.cursor()
+# def init_db():
+#     con = connect_data()
+#     cursor = con.cursor()
 
-    # create table
-    command = """CREATE TABLE IF NOT EXISTS players(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, score INTEGER DEFAULT 0) """
+#     # create table
+#     command = """CREATE TABLE IF NOT EXISTS players(id INTEGER serial PRIMARY KEY, name TEXT NOT NULL) """
 
-    cursor.execute(command)
+#     cursor.execute(command)
+#     con.commit()
+#     cursor.close()
+#     con.close()
 
-    con.commit()
-    con.close()
+# add players
+def add_player(codename):
+     con = connect_data()
+     cursor = con.cursor()
+     cursor.execute("INSERT INTO players (name) VALUES (%s)",(codename, ))
+     con.commit()
+     con.close()
 
 def list_players():
-        con = connect_data()
-        cursor = con.cursor()
-        cursor.execute("SELECT id, name, score FROM players")
-        rows = cursor.fetchall()
-        con.close()
-        return rows
-
-def clear_players():
      con = connect_data()
      cursor = con.cursor()
-     cursor.execute("DELETE FROM players")
-     con.commit()
+     cursor.execute("SELECT * FROM players")
+     rows = cursor.fetchall()
+     cursor.close()
      con.close()
-
-def wipe_data():
-     con = connect_data()
-     cursor = con.cursor()
-     cursor.execute("DELETE FROM players")
-     cursor.execute("DELETE FROM sqlite_sequence WHERE name='players'")
-     con.commit()
-     con.close()
+     return rows
 
 def search(player_id):
      con = connect_data()
      cursor = con.cursor()
-     cursor.execute("SELECT * FROM players WHERE id = ?", (player_id,))
+     cursor.execute("SELECT * FROM players WHERE id = %s", (player_id,))
      row = cursor.fetchone()
+     cursor.close()
      con.close()
      return row
 
