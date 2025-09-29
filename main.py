@@ -21,26 +21,7 @@ def main():
     loading_screen = LoadingScreen(screen)
     loading_screen.load_starting_screen()
 
-    # Test adding players
-    # add_player("Opus")
-    # add_player("Scooby")
-    # uncomment if needing to see database
-    print("Players: ")
-    for player in list_players():
-        print(player)
 
-    # test searching database by id
-    #print(search(2))
-    #print(search(7))
-
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        pygame.display.update()
-
-    pygame.quit()
 
 if __name__ == "__main__":
     main()

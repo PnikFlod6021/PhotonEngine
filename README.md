@@ -3,9 +3,11 @@ _________________________________________________________________
 
 Instructions : 
 
-pip3 install -r requirements.txt //Install Dependencies
+Unzip file
 
-python main.py //run application
+Navigate to Root Repository Directory (/PhotonEngine)
+
+Run bash photon.sh (Might prompt password)
   
 __________________________________________________________________
 

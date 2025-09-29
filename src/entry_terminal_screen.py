@@ -1,80 +1,13 @@
 import tkinter as tk
-from models.database import search
+from models.entry_terminal_handler import EntryTerminalHandler
+from constants import TerminalConstants
 
 class PlayerEntryGUI:
     def __init__(self):
         self.root = tk.Tk()
-        self.player_id = None
+        self.terminal_handler = EntryTerminalHandler(self.root)
         self.createGUI()
 
-
-
-    def display_player_id_screen(self,event):
-        player_id_string = tk.StringVar()
-
-        #Create mini window the ask for player id input
-        top = tk.Toplevel(self.root)
-        top.geometry("200x200")
-        top.title("Player ID")
-
-        #Create Label and TextBox for Player to enter Player ID
-        tk.Label(top, text="Enter Player ID").grid(row=0, column=0)
-        e1 = tk.Entry(top, textvariable=player_id_string)
-        e1.grid(row=0, column=1)
-
-        def close_window():
-            self.player_id = player_id_string.get()
-            print(search(self.player_id))
-            self.display_codename_screen(event)
-            top.destroy()
-
-        #Create button that when clicked, gets the Player ID input and then destroys window
-        b1 = tk.Button(top, text="OK", command=close_window)
-        b1.grid(row=1, column=0)
-
-
-    def display_codename_screen(self,event):
-        codename_string = tk.StringVar()
-
-        # Create mini window the ask for player id input
-        top = tk.Toplevel(self.root)
-        top.geometry("200x200")
-        top.title("Codename")
-
-        # Create Label and TextBox for Player to enter Player ID
-        tk.Label(top, text="Enter Codename").grid(row=0, column=0)
-        e1 = tk.Entry(top, textvariable=codename_string)
-        e1.grid(row=0, column=1)
-
-        def close_window():
-            print(codename_string.get())
-            self.display_equipment_id_screen(event)
-            top.destroy()
-
-        # Create button that when clicked, gets the Player ID input and then destroys window
-        b1 = tk.Button(top, text="OK", command=close_window)
-        b1.grid(row=1, column=0)
-
-    def display_equipment_id_screen(self,event):
-        equipment_id = tk.StringVar()
-
-        # Create mini window the ask for player id input
-        top = tk.Toplevel(self.root)
-        top.geometry("200x200")
-        top.title("Equipment ID")
-
-        # Create Label and TextBox for Player to enter Player ID
-        tk.Label(top, text="Enter Equipment ID").grid(row=0, column=0)
-        e1 = tk.Entry(top, textvariable=equipment_id)
-        e1.grid(row=0, column=1)
-
-        def close_window():
-            print(equipment_id.get())
-            top.destroy()
-
-        # Create button that when clicked, gets the Player ID input and then destroys window
-        b1 = tk.Button(top, text="OK", command=close_window)
-        b1.grid(row=1, column=0)
 
     def createGUI(self):
         self.root.title("Entry Terminal")
@@ -120,22 +53,62 @@ class PlayerEntryGUI:
         tk.Frame(self.root, bg="#000000", width=100).grid(row=1, column=0)
         tk.Frame(self.root, bg="#000000", width=100).grid(row=1,column=4)
 
+        red_id_entries = []
+        red_codename_entries = []
+
+        green_id_entries = []
+        green_codename_entries = []
         # Add player rows
-        for i in range(19):
-            tk.Checkbutton(red_frame, bg=RED_TEAM_BG, selectcolor=RED_TEAM_BG).grid(row=i, column=0, sticky="e")
+        for i in range(TerminalConstants.PLAYER_MAX_COUNT):
+            #Creating headers for red and green team
             tk.Label(red_frame, text=f"{i+1}", bg=RED_TEAM_BG, fg=LABEL_TEXT_COLOR, padx=0).grid(row=i, column=1, sticky="w")
-
-            entry = tk.Entry(red_frame)
-            entry2 = tk.Entry(red_frame)
-            entry.grid(row=i, column=2)
-            entry2.grid(row=i, column=3)
-            entry.bind("<Button>",self.display_player_id_screen)
-
-
-            tk.Checkbutton(green_frame, bg=GREEN_TEAM_BG, selectcolor=GREEN_TEAM_BG).grid(row=i, column=0)
             tk.Label(green_frame, text=f"{i+1}", bg=GREEN_TEAM_BG, fg=LABEL_TEXT_COLOR, padx=0).grid(row=i, column=1, sticky="w")
-            tk.Entry(green_frame).grid(row=i, column=2)
-            tk.Entry(green_frame).grid(row=i, column=3)
+            
+            #This creates an entry field for the red and green side
+            red_player_id_entry = tk.Entry(red_frame)
+            red_player_codename_entry = tk.Entry(red_frame)
+            green_player_id_entry = tk.Entry(green_frame)
+            green_player_codename_entry = tk.Entry(green_frame)
+
+            #Here, we create a grid of entries/input fields or a grid of 2x19 on each side that the user can give input
+            red_player_id_entry.grid(row=i, column=2)
+            red_player_codename_entry.grid(row=i, column=3)
+            green_player_id_entry.grid(row=i, column=2)
+            green_player_codename_entry.grid(row=i, column=3)
+
+            #We want the user to only enter player_id and codename if a key is pressed
+            #So, these entries are read only, so the user cannot directly enter into them
+            red_player_id_entry.config(state="readonly")
+            red_player_codename_entry.config(state="readonly")
+            green_player_id_entry.config(state="readonly")
+            green_player_codename_entry.config(state="readonly")
+
+
+            #We are taking each of these input fields and storing them in a list, so we can manipulate them later
+            red_id_entries.append(red_player_id_entry)
+            red_codename_entries.append(red_player_codename_entry)
+            green_id_entries.append(green_player_id_entry)
+            green_codename_entries.append(green_player_codename_entry)
+
+
+        #Storing the input fields in a list that is defined in the terminal handler model, where we can manipulate the data
+        self.terminal_handler.red_player_id_entries.append(red_id_entries)
+        self.terminal_handler.red_player_codename_entries.append(red_codename_entries)
+        self.terminal_handler.green_player_id_entries.append(green_id_entries)
+        self.terminal_handler.green_player_codename_entries.append(green_codename_entries)
+
+        #Binding an event to the window, so if I or i is pressed, it will trigger the insert player logic
+        self.root.bind(TerminalConstants.INSERT.upper(), self.terminal_handler.display_player_id_screen)
+        self.root.bind(TerminalConstants.INSERT, self.terminal_handler.display_player_id_screen)
+
+        self.root.bind(TerminalConstants.DELETE.upper(), self.terminal_handler.delete_player)
+        self.root.bind(TerminalConstants.DELETE, self.terminal_handler.delete_player)
+
+        self.root.bind(TerminalConstants.DELETE_ALL, self.terminal_handler.delete_all_players)
+
+        self.root.bind(TerminalConstants.CHANGE_IP, self.terminal_handler.change_ip_address)
+
+        self.root.bind(TerminalConstants.EXIT, lambda event: self.root.destroy())
 
         # Game mode text label
         game_mode_label = tk.Label(self.root, text="Game Mode: Standard public mode", bg="#2E2E2E", fg="white")
@@ -151,7 +124,7 @@ class PlayerEntryGUI:
             tk.Button(button_frame, text=label).grid(row=0, column=i, padx=2)
 
         # Status bar
-        status = tk.Label(self.root, text="<Del> to Delete Player, <Ins> to Manually Insert, or edit codename", bd=1, relief=tk.SUNKEN, anchor=tk.CENTER)
+        status = tk.Label(self.root, text="<D or d> to Delete Player, <I or i> to Manually Insert, <F12> to delete all players, <F6> to change network address", bd=1, relief=tk.SUNKEN, anchor=tk.CENTER)
         status.grid(row=5, column=0, columnspan=5, sticky="we")
 
         self.root.mainloop()
