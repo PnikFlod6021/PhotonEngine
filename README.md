@@ -3,9 +3,9 @@ _________________________________________________________________
 
 Instructions : 
 
-Unzip file (sudo apt install unzip -> unzip <path/to/zip-folder-name>
+Unzip file (sudo apt install unzip -> unzip </path/to/zip-folder-name>) 
 
-Navigate to Root Repository Directory (/PhotonEngine) of unzipped folder
+Navigate to Root Repository Directory (/PhotonEngine-main) of unzipped folder
 
 Run bash photon.sh (Might prompt password)
   
