@@ -5,244 +5,144 @@ import socket
 from models.database import search, add_player, delete_player
 from constants import TerminalConstants, UDPConstants
 from UDP_client import broadcast_equipment_id
+from models.player import Player
+from models.green_team import GreenTeam
+from models.red_team import RedTeam
 
+GREEN_TEAM = GreenTeam()
+RED_TEAM = RedTeam()
+MAX_PLAYERS = TerminalConstants.PLAYER_MAX_COUNT
 
 class EntryTerminalHandler():
+
     def __init__(self, root):
         self.root = root
+
+        self.Player = Player(0,None)
+
         self.red_player_id_entries = []
         self.red_player_codename_entries = []
         self.green_player_id_entries = []
         self.green_player_codename_entries = []
-        self.red_players = {}   
-        self.green_players = {} 
-        self.red_spots_left = [i for i in range(TerminalConstants.PLAYER_MAX_COUNT)]
-        self.green_spots_left = [i for i in range(TerminalConstants.PLAYER_MAX_COUNT)]
 
-    def display_player_id_screen(self, event):
-        player_id_string = tk.StringVar()
-        top = tk.Toplevel(self.root)
-        top.geometry("200x200")
-        top.title("Player ID")
 
-        tk.Label(top, text="Enter Player ID").grid(row=0, column=0)
-        e1 = tk.Entry(top, textvariable=player_id_string)
-        e1.grid(row=0, column=1)
+    def get_player_input(self,event):
+        self.create_input_window(title="Player ID", input_text="Enter Player ID", handler_fn=self.handle_player_id_input)
 
-        def close_window():
-            player_id = player_id_string.get()
+        self.create_input_window(title="Equipment ID", input_text="Enter Player Equipment ID", handler_fn=self.handle_player_equipment_id_input)
 
-            if not player_id:
-                messagebox.showwarning("Player ID", "Must Enter Player ID")
-                top.destroy()
-                return 
-            
-            try:
-                player_id_temp = int(player_id)
-            except:
-                messagebox.showwarning("Player ID", "Must Enter Valid Player ID")
-                top.destroy()
-                return 
+    def handle_player_id_input(self, player_id_entry, top):
+        player_id = player_id_entry.get()
+        self.Player = Player(player_id,None)
 
-            player_data = search(player_id)
-
-            if player_id in self.red_players or player_id in self.green_players:
-                messagebox.showwarning("Player ID", "Entered Player ID already in game")
-                top.destroy()
-                return 
-
-            if int(player_id) % 2 != 0:
-                if len(self.red_players) >= TerminalConstants.PLAYER_MAX_COUNT:
-                    messagebox.showwarning("Player Count", "You have exceeded max player count on RED Team")
-                    top.destroy()
-                    return 
-                if player_data:
-                    codename = player_data[1]
-                    self.display_codename_screen(event,"red",player_id,codename=codename)
-                else:
-                    self.display_codename_screen(event, "red", player_id,codename=None)
-                
-            else:
-                if len(self.green_players) >= TerminalConstants.PLAYER_MAX_COUNT:
-                    messagebox.showwarning("Player Count", "You have exceeded max player count on GREEN Team")
-                    top.destroy()
-                    return 
-                if player_data:
-                    codename = player_data[1]
-                    self.display_codename_screen(event,"green",player_id,codename=codename)
-                else:
-                    self.display_codename_screen(event, "green", player_id,codename=None)
-                    
-
-            top.destroy()
-
-        tk.Button(top, text="OK", command=close_window).grid(row=1, column=0)
-
-    def display_codename_screen(self, event, color, player_id, codename=None):
-
-        if codename and color == "red":
-            self.display_equipment_id_screen(event,codename,player_id,"red")
+        if not self.Player.is_valid_player():
+            (self.display_error_message(
+                top,
+                "Invalid Player ID", 
+                "Must Enter Valid Player ID"
+            ))
             return
-        elif codename and color == "green":
-            self.display_equipment_id_screen(event,codename,player_id,"green")
+        
+        player_codename = self.Player.search_database(int(player_id))
+        self.Player.set_player_codename(player_codename)
+        
+    
+        if RED_TEAM.is_full():
+            (self.display_error_message(
+                top,
+                "Team Full", 
+                "Red Team is Full. Delete player and try again"
+            ))
+            return
+        
+        if GREEN_TEAM.is_full():
+            (self.display_error_message(
+                top,
+                "Team Full", 
+                "Green Team is Full. Delete player and try again"
+            ))
+            return
+        
+        if not self.Player.has_codename():
+            self.create_input_window(title="Player Codename", input_text="Enter Player Codename", handler_fn=self.handle_player_codename_input)
+
+        top.destroy()
+
+    def handle_player_codename_input(self, codename_entry, top):
+        codename = codename_entry.get()
+
+        if not codename:
+            self.display_error_message(top,"Codename", "Must Enter Codename")
             return
 
-        codename_string = tk.StringVar()
-        top = tk.Toplevel(self.root)
-        top.geometry("200x200")
-        top.title("Codename")
+        player_id = self.Player.get_player_id()
+        self.Player.set_player_codename(codename)
 
-        tk.Label(top, text="Enter Codename").grid(row=0, column=0)
-        e1 = tk.Entry(top, textvariable=codename_string)
-        e1.grid(row=0, column=1)
+        # add_player(player_id,codename)
 
-        def close_window():
-            codename = codename_string.get()
-            if not codename:
-                messagebox.showwarning("Codename", "Must Enter Codename")
-                top.destroy()
-                return 
+        top.destroy()
 
-            if color == "red":
-                add_player(player_id,codename)
-                self.display_equipment_id_screen(event,codename,player_id,"red")
-                
-            else:
-                add_player(player_id,codename)
-                self.display_equipment_id_screen(event,codename,player_id,"green")
+    def handle_player_equipment_id_input(self,equip_id_entry, top):
 
-            top.destroy()
+        equip_id = equip_id_entry.get()
 
-        tk.Button(top, text="OK", command=close_window).grid(row=1, column=0)
-
-    def update_player_id(self, player_id, id_list, col, row=0):
-        id_list[row][col].config(state="normal")
-        id_list[row][col].insert(0, player_id)
-        id_list[row][col].config(state="readonly")
-
-    def update_player_codename(self, codename, codename_list, col, row=0):
-        codename_list[row][col].config(state="normal")
-        codename_list[row][col].insert(0, codename)
-        codename_list[row][col].config(state="readonly")
-
-    def delete_player(self, event):
-        player_id_to_delete = tk.StringVar()
-        top = tk.Toplevel(self.root)
-        top.geometry("200x200")
-        top.title("Delete Player")
-
-        tk.Label(top, text="Enter Player ID").grid(row=0, column=0)
-        e1 = tk.Entry(top, textvariable=player_id_to_delete)
-        e1.grid(row=0, column=1)
-
-        def close_window():
-            player_to_delete = player_id_to_delete.get()
-
-            try:
-                if int(player_to_delete) % 2 == 0:
-                    index = self.green_players.pop(player_to_delete)
-                    self.green_player_id_entries[0][index].config(state="normal")
-                    self.green_player_id_entries[0][index].delete(0, tk.END)
-                    self.green_player_id_entries[0][index].config(state="readonly")
-
-                    self.green_player_codename_entries[0][index].config(state="normal")
-                    self.green_player_codename_entries[0][index].delete(0, tk.END)
-                    self.green_player_codename_entries[0][index].config(state="readonly")
-
-                    self.green_spots_left.insert(0, index)
-                else:
-                    index = self.red_players.pop(player_to_delete)
-                    self.red_player_id_entries[0][index].config(state="normal")
-                    self.red_player_id_entries[0][index].delete(0, tk.END)
-                    self.red_player_id_entries[0][index].config(state="readonly")
-
-                    self.red_player_codename_entries[0][index].config(state="normal")
-                    self.red_player_codename_entries[0][index].delete(0, tk.END)
-                    self.red_player_codename_entries[0][index].config(state="readonly")
-
-                    self.red_spots_left.insert(0, index)
-            except KeyError:
-                messagebox.showwarning("Delete Player", "Player ID not found on Teams")
-                top.destroy()
-                return 
-
-            top.destroy()
-
-        tk.Button(top, text="OK", command=close_window).grid(row=1, column=0)
-    
-    def delete_all_players(self,event):
-        for player_id, index in self.red_players.items():
-            self.red_player_id_entries[0][index].config(state="normal")
-            self.red_player_id_entries[0][index].delete(0, tk.END)
-            self.red_player_id_entries[0][index].config(state="readonly")
-
-            self.red_player_codename_entries[0][index].config(state="normal")
-            self.red_player_codename_entries[0][index].delete(0, tk.END)
-            self.red_player_codename_entries[0][index].config(state="readonly")
-
-        for player_id, index in self.green_players.items():
-            self.green_player_id_entries[0][index].config(state="normal")
-            self.green_player_id_entries[0][index].delete(0, tk.END)
-            self.green_player_id_entries[0][index].config(state="readonly")
-
-            self.green_player_codename_entries[0][index].config(state="normal")
-            self.green_player_codename_entries[0][index].delete(0, tk.END)
-            self.green_player_codename_entries[0][index].config(state="readonly")
-
-        self.red_players.clear()
-        self.green_players.clear()
-        self.red_spots_left = [i for i in range(TerminalConstants.PLAYER_MAX_COUNT)]
-        self.green_spots_left = [i for i in range(TerminalConstants.PLAYER_MAX_COUNT)]
-
-
-    def display_equipment_id_screen(self, event, codename, player_id, color):
-        equipment_id = tk.StringVar()
-        top = tk.Toplevel(self.root)
-        top.geometry("200x200")
-        top.title("Equipment ID")
-
-        tk.Label(top, text="Enter Equipment ID").grid(row=0, column=0)
-        e1 = tk.Entry(top, textvariable=equipment_id)
-        e1.grid(row=0, column=1)
-
-        def close_window():
-            try:
-                equip_id = int(equipment_id.get())
-            except:
-                messagebox.showwarning("Invalid Equipment ID. Please Try again")
-                top.destroy()
-                return 
+        if not self.Player.has_valid_equipment_id(equip_id):
+            (self.display_error_message
+            (   
+                top,
+                "Equipment ID", 
+                "Invalid Equipment ID. Please Try again"
+            ))
+            return
             
-            if equipment_id.get():
-                broadcast_equipment_id((equipment_id.get()))
-            else:
-                messagebox.showwarning("Equipment ID","Must Enter Equipment ID")
-                top.destroy()
-                return 
+        self.Player.set_equipment_id(equip_id)
+        broadcast_equipment_id(int(equip_id))
 
-           
+        if self.Player.is_red():
+            index = RED_TEAM.add_new_player(self.Player)
+        else:
+            index = GREEN_TEAM.add_new_player(self.Player)
 
-            if color == "red":
-                index = self.red_spots_left.pop(0)
-                self.red_players[player_id] = index
-                self.update_player_id(player_id, self.red_player_id_entries, col=index)
-                self.update_player_codename(codename, self.red_player_codename_entries, col=index)
-            else:
-                index = self.green_spots_left.pop(0)
-                self.green_players[player_id] = index
-                self.update_player_id(player_id, self.green_player_id_entries, col=index)
-                self.update_player_codename(codename, self.green_player_codename_entries, col=index)
+        self.update_player_on_screen(self.Player, col=index)
+        
+        top.destroy()
 
-            top.destroy()
 
-        tk.Button(top, text="OK", command=close_window).grid(row=1, column=0)
+    def delete_player_on_screen(self,event):
+        self.create_input_window(title="Delete Player", input_text="Enter Player ID to Delete", handler_fn=self.handle_player_deletion)
+
+    def handle_player_deletion(self,player_to_delete_entry,top):
+        player_id_to_delete = player_to_delete_entry.get()
+        temp_player = Player(player_id_to_delete,None)
+
+
+        if not player_id_to_delete:
+            self.display_error_message(top,"Delete Player", "Must Enter Valid Player ID to delete")
+            return
+
+        if temp_player.is_red():
+            index_to_remove = RED_TEAM.remove_player(player_id_to_delete)
+
+            if index_to_remove is None:
+                self.display_error_message(top,"Delete Player", "Player ID not found on Red Team")
+                return
+
+            self.delete_player(temp_player,col=index_to_remove)
+
+        else:
+            index_to_remove = GREEN_TEAM.remove_player(player_id_to_delete)
+
+            if index_to_remove is None:
+                self.display_error_message(top,"Delete Player", "Player ID not found on Green Team")
+                return
+
+            self.delete_player(temp_player,index_to_remove)
+
+        top.destroy()
     
-
-
-
     def change_ip_address(self, event):
         top = tk.Toplevel(self.root)
-        top.geometry("200x200")
+        top.geometry("400x200")
         top.title("Network Address")
 
         tk.Label(top, text="Enter Network Address").grid(row=0, column=0)
@@ -259,3 +159,62 @@ class EntryTerminalHandler():
                 return 
 
         tk.Button(top, text="OK", command=close_window).grid(row=1, column=0)
+    
+    def update_player_on_screen(self, Player, col, row=0):
+        id_list = None
+        codename_list = None
+
+        if Player.is_red():
+            id_list = self.red_player_id_entries
+            codename_list = self.red_player_codename_entries
+        else:
+            id_list = self.green_player_id_entries
+            codename_list = self.green_player_codename_entries
+
+        id_list[row][col].config(state="normal")
+        id_list[row][col].insert(0, str(self.Player.get_player_id()))
+        id_list[row][col].config(state="readonly")
+
+        codename_list[row][col].config(state="normal")
+        codename_list[row][col].insert(0, str(self.Player.get_codename()))
+        codename_list[row][col].config(state="readonly")
+    
+    def delete_player(self,Player, col, row=0):
+        id_list = None
+        codename_list = None
+
+        if Player.is_red():
+            id_list = self.red_player_id_entries
+            codename_list = self.red_player_codename_entries
+        else:
+            id_list = self.green_player_id_entries
+            codename_list = self.green_player_codename_entries
+
+        id_list[row][col].config(state="normal")
+        id_list[row][col].delete(0, tk.END)
+        id_list[row][col].config(state="readonly")
+
+        codename_list[row][col].config(state="normal")
+        codename_list[row][col].delete(0, tk.END)
+        codename_list[row][col].config(state="readonly")
+    
+    def delete_all_players(self,event):
+        for i in range(MAX_PLAYERS):
+            self.delete_player(Player(1,None), i)
+            self.delete_player(Player(0,None), i)
+
+
+    def display_error_message(self,top,message_top_text=None,error_text=None):
+        messagebox.showwarning(message_top_text,error_text)
+        top.destroy()
+
+    def create_input_window(self,size="200x200",title="Input Window",input_text="Enter Input",handler_fn=None):
+        top = tk.Toplevel(self.root)
+        top.geometry(size)
+        top.title(title)
+
+        tk.Label(top, text=input_text).grid(row=0, column=0)
+        e1 = tk.Entry(top)
+        e1.grid(row=0, column=1)
+
+        tk.Button(top, text="OK", command=lambda: handler_fn(e1, top)).grid(row=1, column=0)

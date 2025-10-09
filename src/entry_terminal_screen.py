@@ -98,11 +98,11 @@ class PlayerEntryGUI:
         self.terminal_handler.green_player_codename_entries.append(green_codename_entries)
 
         #Binding an event to the window, so if I or i is pressed, it will trigger the insert player logic
-        self.root.bind(TerminalConstants.INSERT.upper(), self.terminal_handler.display_player_id_screen)
-        self.root.bind(TerminalConstants.INSERT, self.terminal_handler.display_player_id_screen)
+        self.root.bind(TerminalConstants.INSERT.upper(), self.terminal_handler.get_player_input)
+        self.root.bind(TerminalConstants.INSERT, self.terminal_handler.get_player_input)
 
-        self.root.bind(TerminalConstants.DELETE.upper(), self.terminal_handler.delete_player)
-        self.root.bind(TerminalConstants.DELETE, self.terminal_handler.delete_player)
+        self.root.bind(TerminalConstants.DELETE.upper(), self.terminal_handler.delete_player_on_screen)
+        self.root.bind(TerminalConstants.DELETE, self.terminal_handler.delete_player_on_screen)
 
         self.root.bind(TerminalConstants.DELETE_ALL, self.terminal_handler.delete_all_players)
 
@@ -120,11 +120,11 @@ class PlayerEntryGUI:
         # Function key buttons
         button_frame = tk.Frame(self.root)
         button_frame.grid(row=4, column=0, columnspan=5)
-        for i, label in enumerate(["F1: New Game", "F2: Load Game", "F3: Save Game", "F4: Save As", "F5: Print", "F6: Print Setup", "F7: Exit"]):
+        for i, label in enumerate(["F1: New Game", "F2: Load Game", "F3: Save Game", "F4: Save As", "F5: Print", "F6: Change Network Address", "F7: Exit"]):
             tk.Button(button_frame, text=label).grid(row=0, column=i, padx=2)
 
         # Status bar
-        status = tk.Label(self.root, text="<D or d> to Delete Player, <I or i> to Manually Insert, <F12> to delete all players, <F6> to change network address", bd=1, relief=tk.SUNKEN, anchor=tk.CENTER)
+        status = tk.Label(self.root, text="<D or d> to Delete Player, <I or i> to Manually Insert, <F12> to delete all players", bd=1, relief=tk.SUNKEN, anchor=tk.CENTER)
         status.grid(row=5, column=0, columnspan=5, sticky="we")
 
         self.root.mainloop()

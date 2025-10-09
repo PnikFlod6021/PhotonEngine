@@ -11,7 +11,7 @@ rx_sock.bind((UDPConstants.HOST, UDPConstants.RX_PORT))
 # if data is 202 it means the game is about to start and start trabsmitting equipment codes
 received_data = ' '
 while True:
-	data, addr = rx_sock.recvfrom(UDPConstants.BUF_SIZE) 
+	data, addr = rx_sock.recvfrom(1024) 
 	received_data = data.decode('utf-8')
 	print(f"Received equipment id: {data} from {addr}")
 
