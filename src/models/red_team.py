@@ -1,4 +1,4 @@
-from constants import TerminalConstants
+from src.constants import TerminalConstants
 
 MAX_PLAYER_COUNT = TerminalConstants.PLAYER_MAX_COUNT
 PLAYERS = []
@@ -44,3 +44,9 @@ class RedTeam():
             i += 1
         
         return remove_index
+    
+    def get_display_data(self):
+        return [
+            {"name": codename, "score": 0}
+            for _, codename, _ in PLAYERS
+        ]

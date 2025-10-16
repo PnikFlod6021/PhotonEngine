@@ -4,10 +4,7 @@ import tkinter as tk
 
 class GameScreen:
     def __init__(self, root):
-        self.root = root
-        self.root.title("Photon Laser Tag - Action Screen")
-
-        
+        self.root = root  
         self.remaining_time = 6 * 60
         self.timer_running = False
 
