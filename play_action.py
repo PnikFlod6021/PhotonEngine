@@ -28,10 +28,13 @@ red_team = [
 ]
 green_team = [{"name": "Scooby Doo", "score": 5000},
               {"name": "Opus", "score": 2500}]
+
+# Game log - not used yet
 game_log = [
     "Scooby Doo hit Opus",
     "Scooby Doo hit Opus"
 ]
+
 time_remaining = "0:00"
 
 # Create window
