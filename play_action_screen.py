@@ -79,6 +79,7 @@ class PlayActionScreen:
         self.canvas.itemconfig(self.time_text, text=f"Time Remaining: {current_time}")
         self.root.after(1000, self.update_scoreboard_timer)
 
+# Class to test data
 class TestPlayer:
     def __init__(self, pid, codename, equip):
         self._id = pid
@@ -93,7 +94,6 @@ class TestPlayer:
 if __name__ == "__main__":
     green_team_model = GreenTeam()
     red_team_model = RedTeam()
-
 
     green_team_model = GreenTeam()
     red_team_model = RedTeam()
