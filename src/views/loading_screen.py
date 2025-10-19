@@ -22,7 +22,7 @@ class LoadingScreen:
         pygame.display.update()
 
         pygame.event.pump()
-        pygame.time.delay(2500)
+        pygame.time.delay(3000)
 
         fading_surface = pygame.Surface((ScreenConstants.SCREEN_WIDTH, ScreenConstants.SCREEN_HEIGHT))
         fading_surface.fill((0,0,0))
@@ -36,6 +36,7 @@ class LoadingScreen:
             self.screen.blit(fading_surface, (0, 0))
             pygame.display.update()
             pygame.time.Clock().tick(20)
-
+        
+       
 
 
