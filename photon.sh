@@ -15,4 +15,3 @@ pip3 install -r requirements.txt
 
 python main.py
 
-python src/entry_terminal_screen.py

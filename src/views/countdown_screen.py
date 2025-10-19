@@ -1,7 +1,7 @@
 import pygame
 import time
 from src.constants import ScreenConstants
-from src.UDP_client import broadcast_message
+from src.models.UDP.UDP_client import broadcast_message
 
 class CountdownScreen:
     def __init__ (self, screen, duration=30):

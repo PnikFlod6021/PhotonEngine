@@ -12,6 +12,7 @@ class TerminalConstants:
     DELETE_ALL = "<F12>"
     CHANGE_IP = "<F6>"
     EXIT = "<F7>"
+    START_GAME = "<F5>"
 
 class UDPConstants:
     HOST = "127.0.0.1"

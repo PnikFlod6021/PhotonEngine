@@ -1,10 +1,15 @@
 import tkinter as tk
-from src.models.Player_Action_Screen_Timer import GameScreen
-from src.models.green_team import GreenTeam
-from src.models.red_team import RedTeam
+from src.models.Timers.Player_Action_Screen_Timer import GameScreen
+from src.models.teams.green_team import GreenTeam
+from src.models.teams.red_team import RedTeam
 
 class PlayActionScreen:
-    def __init__(self, root, red_team_data, green_team_data, game_log):
+    def __init__(self,red_team_data, green_team_data, game_log):
+        root = tk.Tk()
+        root.title("Play Action")
+        root.geometry("800x600")
+        root.configure(bg="black")
+
         self.root = root
         self.red_team_data = red_team_data
         self.green_team_data = green_team_data
@@ -23,6 +28,9 @@ class PlayActionScreen:
 
         self.create_ui()
         self.update_scoreboard_timer()
+
+        self.root.mainloop()
+
 
     def draw_rounded_rect(self, x1, y1, x2, y2, radius, **kwargs):
         points = [
@@ -91,35 +99,5 @@ class TestPlayer:
     def get_codename(self): return self._codename
     def get_equipment_id(self): return self._equip
 
-if __name__ == "__main__":
-    green_team_model = GreenTeam()
-    red_team_model = RedTeam()
 
-    green_team_model = GreenTeam()
-    red_team_model = RedTeam()
-
-    # Data to test players -
-    green_team_model.add_new_player(TestPlayer("G1", "Scooby Doo", "E1"))
-    green_team_model.add_new_player(TestPlayer("G2", "Opus", "E2"))
-
-    red_team_model.add_new_player(TestPlayer("R1", "Crimson", "E3"))
-    red_team_model.add_new_player(TestPlayer("R2", "Opus", "E4"))
-
-
-    red_team_data = red_team_model.get_display_data()
-    green_team_data = green_team_model.get_display_data()
-
-    # Game log - not used yet
-    game_log = [
-        "Scooby Doo hit Opus",
-        "Scooby Doo hit Opus"
-    ]
-
-    root = tk.Tk()
-    root.title("Play Action")
-    root.geometry("800x600")
-    root.configure(bg="black")
-
-    PlayActionScreen(root, red_team_data, green_team_data, game_log)
-
-    root.mainloop()
+    

@@ -2,12 +2,12 @@ import tkinter as tk
 from tkinter import messagebox 
 import socket
 
-from models.database import search, add_player, delete_player
-from constants import TerminalConstants, UDPConstants
-from UDP_client import broadcast_equipment_id
-from models.player import Player
-from models.green_team import GreenTeam
-from models.red_team import RedTeam
+from src.models.database import search, add_player, delete_player
+from src.constants import TerminalConstants, UDPConstants
+from src.models.UDP.UDP_client import broadcast_equipment_id
+from src.models.teams.player import Player
+from src.models.teams.green_team import GreenTeam
+from src.models.teams.red_team import RedTeam
 
 GREEN_TEAM = GreenTeam()
 RED_TEAM = RedTeam()
@@ -24,12 +24,12 @@ class EntryTerminalHandler():
         self.red_player_codename_entries = []
         self.green_player_id_entries = []
         self.green_player_codename_entries = []
+        
 
 
     def get_player_input(self,event):
         self.create_input_window(title="Player ID", input_text="Enter Player ID", handler_fn=self.handle_player_id_input)
 
-        self.create_input_window(title="Equipment ID", input_text="Enter Player Equipment ID", handler_fn=self.handle_player_equipment_id_input)
 
     def handle_player_id_input(self, player_id_entry, top):
         player_id = player_id_entry.get()
@@ -65,6 +65,8 @@ class EntryTerminalHandler():
         
         if not self.Player.has_codename():
             self.create_input_window(title="Player Codename", input_text="Enter Player Codename", handler_fn=self.handle_player_codename_input)
+        else:
+            self.create_input_window(title="Equipment ID", input_text="Enter Player Equipment ID", handler_fn=self.handle_player_equipment_id_input)
 
         top.destroy()
 
@@ -78,7 +80,9 @@ class EntryTerminalHandler():
         player_id = self.Player.get_player_id()
         self.Player.set_player_codename(codename)
 
-        # add_player(player_id,codename)
+        add_player(player_id,codename)
+
+        self.create_input_window(title="Equipment ID", input_text="Enter Player Equipment ID", handler_fn=self.handle_player_equipment_id_input)
 
         top.destroy()
 
@@ -92,6 +96,15 @@ class EntryTerminalHandler():
                 top,
                 "Equipment ID", 
                 "Invalid Equipment ID. Please Try again"
+            ))
+            return
+        
+        if RED_TEAM.has_duplicate_equipment_id(equip_id) or GREEN_TEAM.has_duplicate_equipment_id(equip_id):
+            (self.display_error_message
+            (   
+                top,
+                "Equipment ID", 
+                "Equipment ID already in use"
             ))
             return
             
@@ -202,6 +215,14 @@ class EntryTerminalHandler():
         for i in range(MAX_PLAYERS):
             self.delete_player(Player(1,None), i)
             self.delete_player(Player(0,None), i)
+        
+        for player_index, player_id in GREEN_TEAM.player_index.items():
+            if player_id: 
+                GREEN_TEAM.remove_player(player_id)
+        
+        for player_index, player_id in RED_TEAM.player_index.items():
+            if player_id:
+                RED_TEAM.remove_player(player_id)
 
 
     def display_error_message(self,top,message_top_text=None,error_text=None):

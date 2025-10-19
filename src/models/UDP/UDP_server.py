@@ -1,6 +1,6 @@
 import socket
 
-from constants import UDPConstants
+from src.constants import UDPConstants
 
 
 # Create and bind the Receiver socket

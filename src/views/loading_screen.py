@@ -36,6 +36,7 @@ class LoadingScreen:
             self.screen.blit(fading_surface, (0, 0))
             pygame.display.update()
             pygame.time.Clock().tick(20)
-
+        
+       
 
 

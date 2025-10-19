@@ -1,9 +1,11 @@
 import tkinter as tk
-from models.entry_terminal_handler import EntryTerminalHandler
-from constants import TerminalConstants
+
+from src.models.entry_terminal_handler import EntryTerminalHandler
+from src.constants import TerminalConstants
 
 class PlayerEntryGUI:
     def __init__(self):
+        self.has_finished = False
         self.root = tk.Tk()
         self.terminal_handler = EntryTerminalHandler(self.root)
         self.createGUI()
@@ -110,6 +112,10 @@ class PlayerEntryGUI:
 
         self.root.bind(TerminalConstants.EXIT, lambda event: self.root.destroy())
 
+        self.root.bind(TerminalConstants.START_GAME, self.finish_entry)
+
+        
+
         # Game mode text label
         game_mode_label = tk.Label(self.root, text="Game Mode: Standard public mode", bg="#2E2E2E", fg="white")
         game_mode_label.grid(row=2, column=0, columnspan=5, sticky="n")
@@ -120,14 +126,15 @@ class PlayerEntryGUI:
         # Function key buttons
         button_frame = tk.Frame(self.root)
         button_frame.grid(row=4, column=0, columnspan=5)
-        for i, label in enumerate(["F1: New Game", "F2: Load Game", "F3: Save Game", "F4: Save As", "F5: Print", "F6: Change Network Address", "F7: Exit"]):
+        for i, label in enumerate(["F1: New Game", "F2: Load Game", "F3: Save Game", "F12: Delete All Players ", "F5: Start Game", "F6: Change Network Address", "F7: Exit"]):
             tk.Button(button_frame, text=label).grid(row=0, column=i, padx=2)
 
         # Status bar
-        status = tk.Label(self.root, text="<D or d> to Delete Player, <I or i> to Manually Insert, <F12> to delete all players", bd=1, relief=tk.SUNKEN, anchor=tk.CENTER)
+        status = tk.Label(self.root, text="<D or d> to Delete Player, <I or i> to Manually Insert", bd=1, relief=tk.SUNKEN, anchor=tk.CENTER)
         status.grid(row=5, column=0, columnspan=5, sticky="we")
 
         self.root.mainloop()
-
-if __name__ == "__main__":
-    PlayerEntryGUI()
+    
+    def finish_entry(self, event):
+        self.has_finished = True
+        self.root.destroy()

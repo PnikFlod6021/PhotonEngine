@@ -1,4 +1,4 @@
-from models.database import search
+from src.models.database import search
 
 class Player():
     def __init__(self,player_id, codename):

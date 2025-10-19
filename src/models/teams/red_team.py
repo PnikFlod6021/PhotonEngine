@@ -3,7 +3,7 @@ from src.constants import TerminalConstants
 MAX_PLAYER_COUNT = TerminalConstants.PLAYER_MAX_COUNT
 PLAYERS = []
 
-class GreenTeam():
+class RedTeam():
     def __init__(self):
         self.player_index = {player_index:None for player_index in range(MAX_PLAYER_COUNT)}
 
@@ -44,9 +44,16 @@ class GreenTeam():
             i += 1
         
         return remove_index
-
+    
     def get_display_data(self):
         return [
             {"name": codename, "score": 0}
             for _, codename, _ in PLAYERS
         ]
+    
+    def has_duplicate_equipment_id(self,equipment_id):
+        for player_id, player_data, player_equip_id in PLAYERS:
+            if player_equip_id == equipment_id:
+                return True
+        
+        return False

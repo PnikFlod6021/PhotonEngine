@@ -1,6 +1,6 @@
 # models/game_starter.py
 
-from models.udp_handler import broadcast_message
+from src.models.UDP.UDP_client import broadcast_message
 
 class GameStarter:
     def __init__(self, root, timer_label, pre_game_seconds=30, game_seconds=6*60):
