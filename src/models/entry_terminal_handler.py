@@ -43,11 +43,19 @@ class EntryTerminalHandler():
             ))
             return
         
+        if GREEN_TEAM.has_duplicate_player(player_id) or RED_TEAM.has_duplicate_player(player_id):
+            (self.display_error_message(
+                top,
+                "Player ID", 
+                "Player ID Already Exists in Game"
+            ))
+            return
+        
         player_codename = self.Player.search_database(int(player_id))
         self.Player.set_player_codename(player_codename)
         
     
-        if RED_TEAM.is_full():
+        if self.Player.is_red() and RED_TEAM.is_full():
             (self.display_error_message(
                 top,
                 "Team Full", 
@@ -55,7 +63,7 @@ class EntryTerminalHandler():
             ))
             return
         
-        if GREEN_TEAM.is_full():
+        if self.Player.is_green() and GREEN_TEAM.is_full():
             (self.display_error_message(
                 top,
                 "Team Full", 

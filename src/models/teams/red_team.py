@@ -57,3 +57,10 @@ class RedTeam():
                 return True
         
         return False
+    
+    def has_duplicate_player(self,p_id):
+        for player_id, player_data, player_equip_id in PLAYERS:
+            if player_id == p_id:
+                return True
+
+        return False
