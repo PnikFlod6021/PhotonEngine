@@ -33,7 +33,7 @@ def main():
         screen = pygame.display.set_mode((ScreenConstants.SCREEN_WIDTH, ScreenConstants.SCREEN_HEIGHT))
         pygame.display.set_caption(ScreenConstants.GAME_TITLE)
 
-        countdown = CountdownScreen(screen, duration=5) #Remember to put this back to 30 after testing
+        countdown = CountdownScreen(screen, duration=30) #Remember to put this back to 30 after testing
         countdown_finished = countdown.run()
 
         pygame.quit()
