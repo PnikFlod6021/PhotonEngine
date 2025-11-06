@@ -25,6 +25,15 @@ class PlayActionScreen:
         self.game_timer.start_timer()
 
         self.time_text = None
+        # store flashing job ids so we can cancel them when needed
+        self.flash_jobs = {}
+
+        # references to the total labels so we can toggle flashing dynamically
+        self.red_total_label = None
+        self.green_total_label = None
+
+        # ensure we clean up after ourselves
+        self.root.protocol('WM_DELETE_WINDOW', self.on_close)
 
         self.create_ui()
         self.update_scoreboard_timer()
@@ -55,10 +64,15 @@ class PlayActionScreen:
         self.draw_rounded_rect(50, 50, 600, 650, self.radius, fill="black", outline="yellow", width=self.border_width)
 
         # Create red team frame
-        self.create_team_frame(self.red_team_data, "RED TEAM", "red", 56)
+        # compute totals so we can determine which total is highest
+        red_total = sum(player["score"] for player in self.red_team_data)
+        green_total = sum(player["score"] for player in self.green_team_data)
+
+        # Pass whether this team's total is the (co-)highest so it can flash
+        self.create_team_frame(self.red_team_data, "RED TEAM", "red", 56, total_score=red_total, is_highest=(red_total >= green_total))
 
         # Create green team frame
-        self.create_team_frame(self.green_team_data, "GREEN TEAM", "green", 325)
+        self.create_team_frame(self.green_team_data, "GREEN TEAM", "green", 325, total_score=green_total, is_highest=(green_total >= red_total))
 
         # Game log box
         self.draw_rounded_rect(620, 50, 1150, 650, self.radius, fill="#0a0d24", outline="yellow", width=self.border_width)
@@ -74,8 +88,11 @@ class PlayActionScreen:
         frame.grid_columnconfigure(1, weight=1)
 
         tk.Label(frame, text=label, fg="white", bg="black", font=("Helvetica", 16, "bold")).grid(row=0, column=0, columnspan=2, sticky="n", padx=0, pady=0)
+
+        # Sort team data list from highest to lowest
+        sorted_data = sorted(team_data, key=lambda player: player['score'], reverse=True)
         
-        for i, player in enumerate(team_data):
+        for i, player in enumerate(sorted_data):
             tk.Label(frame, text=player['name'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=0, sticky="w", padx=5)
             tk.Label(frame, text=player['score'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=1, sticky="e", padx=0)
         total_score = sum(player["score"] for player in team_data)
