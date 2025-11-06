@@ -37,7 +37,6 @@ class PlayActionScreen:
 
         self.root.mainloop()
 
-
     def draw_rounded_rect(self, x1, y1, x2, y2, radius, **kwargs):
         points = [
             x1+radius, y1,
