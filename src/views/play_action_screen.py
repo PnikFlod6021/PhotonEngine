@@ -32,9 +32,6 @@ class PlayActionScreen:
         self.red_total_label = None
         self.green_total_label = None
 
-        # ensure we clean up after ourselves
-        self.root.protocol('WM_DELETE_WINDOW', self.on_close)
-
         self.create_ui()
         self.update_scoreboard_timer()
 
@@ -80,7 +77,7 @@ class PlayActionScreen:
         # Time remaining label
         self.time_text = self.canvas.create_text(900, 670, text="", fill="white", font=("Helvetica", 16, "bold"))
 
-    def create_team_frame(self, team_data, label, color, x):
+    def create_team_frame(self, team_data, label, color, x, total_score, is_highest):
         frame = tk.Frame(self.canvas, bg="black")
         self.canvas.create_window(x, 55, window=frame, width=269, height=594, anchor="nw")
 
@@ -93,7 +90,7 @@ class PlayActionScreen:
         sorted_data = sorted(team_data, key=lambda player: player['score'], reverse=True)
         
         for i, player in enumerate(sorted_data):
-            tk.Label(frame, text=player['name'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=0, sticky="w", padx=5)
+            tk.Label(frame, text=player['name'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=0, sticky="w", padx=25)
             tk.Label(frame, text=player['score'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=1, sticky="e", padx=0)
         total_score = sum(player["score"] for player in team_data)
         total_label = tk.Label(frame, text=f"{total_score}", fg=color, bg="black", font=("Helvetica", 14, "bold"))
