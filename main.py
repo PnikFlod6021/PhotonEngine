@@ -28,29 +28,33 @@ def main():
 
     # Game start countdown
 
-    if player_entry_screen.has_finished:
-        pygame.init()
-        screen = pygame.display.set_mode((ScreenConstants.SCREEN_WIDTH, ScreenConstants.SCREEN_HEIGHT))
-        pygame.display.set_caption(ScreenConstants.GAME_TITLE)
+    if not player_entry_screen.has_finished:
+        return
 
-        countdown = CountdownScreen(screen, duration=30) #Remember to put this back to 30 after testing
-        countdown_finished = countdown.run()
+    pygame.init()
+    screen = pygame.display.set_mode((ScreenConstants.SCREEN_WIDTH, ScreenConstants.SCREEN_HEIGHT))
+    pygame.display.set_caption(ScreenConstants.GAME_TITLE)
 
-        pygame.quit()
+    countdown = CountdownScreen(screen, duration=30) #Remember to put this back to 30 after testing
+    countdown_finished = countdown.run()
 
-        if countdown_finished:
-            green_team_model = GreenTeam()
-            red_team_model = RedTeam()
+    pygame.quit()
 
-            red_team_data = red_team_model.get_display_data()
-            green_team_data = green_team_model.get_display_data()
+    if not countdown_finished:
+        return
 
-            game_log = [
-                "Scooby Doo hit Opus",
-                "Scooby Doo hit Opus"
-            ]
+    green_team_model = GreenTeam()
+    red_team_model = RedTeam()
 
-            PlayActionScreen(red_team_data, green_team_data, game_log)
+    red_team_data = red_team_model.get_display_data()
+    green_team_data = green_team_model.get_display_data()
+
+    game_log = [
+        "Scooby Doo hit Opus",
+        "Scooby Doo hit Opus"
+    ]
+
+    PlayActionScreen(red_team_data, green_team_data, game_log)
 
 
 

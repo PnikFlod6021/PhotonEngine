@@ -2,9 +2,12 @@ import tkinter as tk
 from src.models.Timers.Player_Action_Screen_Timer import GameScreen
 from src.models.teams.green_team import GreenTeam
 from src.models.teams.red_team import RedTeam
+from src.models.game_audio_handler import GameAudioHandler
 
 class PlayActionScreen:
     def __init__(self,red_team_data, green_team_data, game_log):
+        game_audio_handler = GameAudioHandler()
+
         root = tk.Tk()
         root.title("Play Action")
         root.geometry("1200x800")
@@ -28,6 +31,8 @@ class PlayActionScreen:
 
         self.create_ui()
         self.update_scoreboard_timer()
+
+        game_audio_handler.play_random_audio() 
 
         self.root.mainloop()
 
