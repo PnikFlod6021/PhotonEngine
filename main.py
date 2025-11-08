@@ -49,10 +49,9 @@ def main():
     red_team_data = red_team_model.get_display_data()
     green_team_data = green_team_model.get_display_data()
 
-    game_log = [
-        "Scooby Doo hit Opus",
-        "Scooby Doo hit Opus"
-    ]
+    players = list_players()
+
+    game_log = [{"name": codename, "score": 0, "equip": pid} for pid, codename in players]
 
     PlayActionScreen(red_team_data, green_team_data, game_log)
 

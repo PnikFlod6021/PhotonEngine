@@ -3,9 +3,13 @@ from src.models.Timers.Player_Action_Screen_Timer import GameScreen
 from src.models.teams.green_team import GreenTeam
 from src.models.teams.red_team import RedTeam
 from src.models.game_audio_handler import GameAudioHandler
+from friendly_fire import score_logic
+from src.models.UDP.UDP_client import broadcast_message
+from PIL import Image, ImageTk
+
 
 class PlayActionScreen:
-    def __init__(self,red_team_data, green_team_data, game_log):
+    def __init__(self,red_team_data, green_team_data, game_log, attacker_id = None):
         game_audio_handler = GameAudioHandler()
 
         root = tk.Tk()
@@ -21,11 +25,24 @@ class PlayActionScreen:
         self.radius = 30
         self.border_width = 4
 
+        self.player_widgets = {}
+
+        # load base icon
+        try:
+            img =  Image.open("images/baseicon.jpg")
+            img = img.resize((20,20))
+            self.base_icon = ImageTk.PhotoImage(img)
+        except Exception as e:
+            print("Could not load baseicon.jpg: ", e)
+            self.base_icon = None
+
         self.canvas = tk.Canvas(root, bg="black", highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         self.game_timer = GameScreen(root)
         self.game_timer.start_timer()
+
+        self.logic = score_logic(red_team_data, green_team_data, ui_callback = self.update_player_info)
 
         self.time_text = None
 
@@ -81,17 +98,54 @@ class PlayActionScreen:
         tk.Label(frame, text=label, fg="white", bg="black", font=("Helvetica", 16, "bold")).grid(row=0, column=0, columnspan=2, sticky="n", padx=0, pady=0)
         
         for i, player in enumerate(team_data):
-            tk.Label(frame, text=player['name'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=0, sticky="w", padx=5)
-            tk.Label(frame, text=player['score'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=1, sticky="e", padx=0)
+            name_label = tk.Label(frame, text=player['name'], fg=color, bg="black", font=("Helvetica", 14, "bold"))
+            name_label.grid(row=i+1, column=0, sticky="w", padx=5)
+
+            score_label = tk.Label(frame, text=player['score'], fg=color, bg="black", font=("Helvetica", 14, "bold"))
+            score_label.grid(row=i+1, column=1, sticky="e", padx=0)
+
+            equip_id = player.get("equip", None)
+
+            # store widgets so they can be updated
+            if equip_id is not None:
+                self.player_widgets[equip_id] = {
+                    "name_label": name_label,
+                    "score_label": score_label
+                }
+
         total_score = sum(player["score"] for player in team_data)
         total_label = tk.Label(frame, text=f"{total_score}", fg=color, bg="black", font=("Helvetica", 14, "bold"))
         total_label.place(relx=1.0, rely=1.0, anchor="se", x=0, y=0)
 
     def update_scoreboard_timer(self):
         current_time = self.game_timer.get_remaining_time()
-        self.canvas.itemconfig(self.time_text, text=f"Time Remaining: {current_time}")
-        self.root.after(1000, self.update_scoreboard_timer)
+        min, sec = map(int, current_time.split(":"))
+        total_seconds = min * 60 + sec
 
+        self.canvas.itemconfig(self.time_text, text=f"Time Remaining: {current_time}")
+        if total_seconds <= 0:
+            self.game_over()
+            return
+        self.root.after(1000, self.update_scoreboard_timer)
+    
+    def update_player_info(self, team_data, attacker_id = None):
+        red_team_data, green_team_data = team_data
+        for player in red_team_data + green_team_data:
+            equip = player.get("equip")
+            score = player.get("score")
+            if equip in self.player_widgets:
+                self.player_widgets[equip]["score_label"].config(text=score)
+        
+        if attacker_id and attacker_id in self.player_widgets and self.base_icon:
+            label = self.player_widgets[attacker_id]["name_label"]
+            label.config(image = self.base_icon, compound = "right")
+            label.image = self.base_icon
+
+    def game_over(self):
+        for _ in range(3):
+            broadcast_message(221)
+        print("Game over broadcast sent")
+        
 # Class to test data
 class TestPlayer:
     def __init__(self, pid, codename, equip):

@@ -2,3 +2,4 @@ pygame== 2.6.1
 psycopg2-binary==2.9.7
 pydub
 simpleaudio
+Pillow
