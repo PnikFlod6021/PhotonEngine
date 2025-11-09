@@ -91,14 +91,50 @@ class PlayActionScreen:
         for i, player in enumerate(sorted_data):
             tk.Label(frame, text=player['name'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=0, sticky="w", padx=25)
             tk.Label(frame, text=player['score'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=1, sticky="e", padx=0)
-        total_score = sum(player["score"] for player in team_data)
+     
         total_label = tk.Label(frame, text=f"{total_score}", fg=color, bg="black", font=("Helvetica", 14, "bold"))
         total_label.place(relx=1.0, rely=1.0, anchor="se", x=0, y=0)
+
+        total_label.original_color = color
+
+        if is_highest:
+            self.flash_label(total_label, color, "white")
 
     def update_scoreboard_timer(self):
         current_time = self.game_timer.get_remaining_time()
         self.canvas.itemconfig(self.time_text, text=f"Time Remaining: {current_time}")
+
+        red_total = sum(player["score"] for player in self.red_team_data)
+        green_total = sum(player["score"] for player in self.green_team_data)
+
+        if red_total > green_total:
+            self.stop_flashing(self.green_total_label)
+            self.flash_label(self.red_total_label, "red", "white")
+        elif green_total > red_total:
+            self.stop_flashing(self.red_total_label)
+            self.flash_label(self.green_total_label, "green", "white")
+        else:
+            self.flash_label(self.red_total_label, "red", "white")
+            self.flash_label(self.green_total_label, "green", "white")
+
         self.root.after(1000, self.update_scoreboard_timer)
+
+    def flash_label(self, label, color1, color2, interval=500):
+        def toggle():
+            current_color = label.cget("fg")
+            new_color = color2 if current_color == color1 else color1
+            label.config(fg=new_color)
+            job_id = self.root.after(interval, toggle)
+            self.flash_jobs[label] = job_id
+        toggle()
+
+    def stop_flashing(self, label):
+        job_id = self.flash_jobs.pop(label, None)
+        if job_id:
+            self.root.after_cancel(job_id)
+            label.config(fg=label.original_color)  # Reset to original
+
+
 
 # Class to test data
 class TestPlayer:
