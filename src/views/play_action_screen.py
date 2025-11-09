@@ -28,6 +28,12 @@ class PlayActionScreen:
         self.game_timer.start_timer()
 
         self.time_text = None
+        # store flashing job ids so we can cancel them when needed
+        self.flash_jobs = {}
+
+        # references to the total labels so we can toggle flashing dynamically
+        self.red_total_label = None
+        self.green_total_label = None
 
         self.create_ui()
         self.update_scoreboard_timer()
@@ -35,7 +41,6 @@ class PlayActionScreen:
         game_audio_handler.play_random_audio() 
 
         self.root.mainloop()
-
 
     def draw_rounded_rect(self, x1, y1, x2, y2, radius, **kwargs):
         points = [
@@ -60,10 +65,15 @@ class PlayActionScreen:
         self.draw_rounded_rect(50, 50, 600, 650, self.radius, fill="black", outline="yellow", width=self.border_width)
 
         # Create red team frame
-        self.create_team_frame(self.red_team_data, "RED TEAM", "red", 56)
+        # compute totals so we can determine which total is highest
+        red_total = sum(player["score"] for player in self.red_team_data)
+        green_total = sum(player["score"] for player in self.green_team_data)
+
+        # Pass whether this team's total is the (co-)highest so it can flash
+        self.create_team_frame(self.red_team_data, "RED TEAM", "red", 56, total_score=red_total, is_highest=(red_total >= green_total))
 
         # Create green team frame
-        self.create_team_frame(self.green_team_data, "GREEN TEAM", "green", 325)
+        self.create_team_frame(self.green_team_data, "GREEN TEAM", "green", 325, total_score=green_total, is_highest=(green_total >= red_total))
 
         # Game log box
         self.draw_rounded_rect(620, 50, 1150, 650, self.radius, fill="#0a0d24", outline="yellow", width=self.border_width)
@@ -71,7 +81,7 @@ class PlayActionScreen:
         # Time remaining label
         self.time_text = self.canvas.create_text(900, 670, text="", fill="white", font=("Helvetica", 16, "bold"))
 
-    def create_team_frame(self, team_data, label, color, x):
+    def create_team_frame(self, team_data, label, color, x, total_score, is_highest):
         frame = tk.Frame(self.canvas, bg="black")
         self.canvas.create_window(x, 55, window=frame, width=269, height=594, anchor="nw")
 
@@ -79,18 +89,62 @@ class PlayActionScreen:
         frame.grid_columnconfigure(1, weight=1)
 
         tk.Label(frame, text=label, fg="white", bg="black", font=("Helvetica", 16, "bold")).grid(row=0, column=0, columnspan=2, sticky="n", padx=0, pady=0)
+
+        # Sort team data list from highest to lowest
+        sorted_data = sorted(team_data, key=lambda player: player['score'], reverse=True)
         
-        for i, player in enumerate(team_data):
-            tk.Label(frame, text=player['name'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=0, sticky="w", padx=5)
+        for i, player in enumerate(sorted_data):
+            tk.Label(frame, text=player['name'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=0, sticky="w", padx=25)
             tk.Label(frame, text=player['score'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=1, sticky="e", padx=0)
-        total_score = sum(player["score"] for player in team_data)
+     
         total_label = tk.Label(frame, text=f"{total_score}", fg=color, bg="black", font=("Helvetica", 14, "bold"))
         total_label.place(relx=1.0, rely=1.0, anchor="se", x=0, y=0)
+
+        total_label.original_color = color
+
+        if color == "red":
+            self.red_total_label = total_label
+        else:
+            self.green_total_label = total_label
+
+        if is_highest:
+            self.flash_label(total_label, color, "white")
 
     def update_scoreboard_timer(self):
         current_time = self.game_timer.get_remaining_time()
         self.canvas.itemconfig(self.time_text, text=f"Time Remaining: {current_time}")
+
+        red_total = sum(player["score"] for player in self.red_team_data)
+        green_total = sum(player["score"] for player in self.green_team_data)
+
+        if red_total > green_total:
+            self.stop_flashing(self.green_total_label)
+            self.flash_label(self.red_total_label, "red", "white")
+        elif green_total > red_total:
+            self.stop_flashing(self.red_total_label)
+            self.flash_label(self.green_total_label, "green", "white")
+        else:
+            self.flash_label(self.red_total_label, "red", "white")
+            self.flash_label(self.green_total_label, "green", "white")
+
         self.root.after(1000, self.update_scoreboard_timer)
+
+    def flash_label(self, label, color1, color2, interval=500):
+        def toggle():
+            current_color = label.cget("fg")
+            new_color = color2 if current_color == color1 else color1
+            label.config(fg=new_color)
+            job_id = self.root.after(interval, toggle)
+            self.flash_jobs[label] = job_id
+        toggle()
+
+    def stop_flashing(self, label):
+        job_id = self.flash_jobs.pop(label, None)
+        if job_id:
+            self.root.after_cancel(job_id)
+            label.config(fg=label.original_color)  # Reset to original
+
+
 
 # Class to test data
 class TestPlayer:
