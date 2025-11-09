@@ -97,6 +97,11 @@ class PlayActionScreen:
 
         total_label.original_color = color
 
+        if color == "red":
+            self.red_total_label = total_label
+        else:
+            self.green_total_label = total_label
+
         if is_highest:
             self.flash_label(total_label, color, "white")
 
