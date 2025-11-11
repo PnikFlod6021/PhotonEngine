@@ -8,7 +8,10 @@ from src.views.countdown_screen import CountdownScreen
 from src.views.entry_terminal_screen import PlayerEntryGUI
 from src.models.teams.green_team import GreenTeam
 from src.models.teams.red_team import RedTeam
+from src.models.teams.player import Player
 from src.views.play_action_screen import PlayActionScreen
+from src.models.UDP.UDP_server import start_receiving
+from src.models.UDP.UDP_client import broadcast_message 
 
 
 
@@ -46,14 +49,17 @@ def main():
     green_team_model = GreenTeam()
     red_team_model = RedTeam()
 
-    red_team_data = red_team_model.get_display_data()
-    green_team_data = green_team_model.get_display_data()
+    red_team_data = red_team_model
+    green_team_data = green_team_model
+
 
     game_log = [
         "Scooby Doo hit Opus",
         "Scooby Doo hit Opus"
     ]
 
+    start_receiving()
+    
     PlayActionScreen(red_team_data, green_team_data, game_log)
 
 
