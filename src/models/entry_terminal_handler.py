@@ -8,7 +8,7 @@ from src.models.UDP.UDP_client import broadcast_equipment_id
 from src.models.teams.player import Player
 from src.models.teams.green_team import GreenTeam
 from src.models.teams.red_team import RedTeam
-
+   
 GREEN_TEAM = GreenTeam()
 RED_TEAM = RedTeam()
 MAX_PLAYERS = TerminalConstants.PLAYER_MAX_COUNT
@@ -247,3 +247,20 @@ class EntryTerminalHandler():
         e1.grid(row=0, column=1)
 
         tk.Button(top, text="OK", command=lambda: handler_fn(e1, top)).grid(row=1, column=0)
+    
+
+    def redisplay_players(self):
+        green_player_indexes = GREEN_TEAM.get_indexes()
+        red_player_indexes = RED_TEAM.get_indexes()
+
+        for player_id, player_codename, player_equip_id in GREEN_TEAM.get_players():
+            for index, id in green_player_indexes.items():
+                if player_id == id:
+                    player = Player(player_id, player_codename)
+                    self.update_player_on_screen(Player,col=index, row=0)
+        
+        for player_id, player_codename, player_equip_id in RED_TEAM.get_players():
+            for index, id in red_player_indexes.items():
+                if player_id == id:
+                    player = Player(player_id, player_codename)
+                    self.update_player_on_screen(Player,col=index, row=0)
