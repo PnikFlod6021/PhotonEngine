@@ -4,9 +4,11 @@ from src.models.teams.green_team import GreenTeam
 from src.models.teams.red_team import RedTeam
 from src.models.game_audio_handler import GameAudioHandler
 from src.models.player_event_handler import score_logic
+from src.models.UDP.UDP_client import broadcast_message
+from PIL import Image, ImageTk
 
 class PlayActionScreen:
-    def __init__(self,red_team_data, green_team_data, game_log):
+    def __init__(self,red_team_data, green_team_data, game_log, score_logic_instance):
         game_audio_handler = GameAudioHandler()
 
         root = tk.Tk()
@@ -14,11 +16,16 @@ class PlayActionScreen:
         root.geometry("1200x800")
         root.configure(bg="black")
 
+        if score_logic_instance:
+            self.score_logic = score_logic_instance
+            self.score_logic.ui_callback = self.update_ui
+        else:
+            self.score_logic = score_logic(red_team_data, green_team_data, ui_callback=self.update_ui)
+
         self.root = root
         self.red_team_data = red_team_data
         self.green_team_data = green_team_data
 
-        self.score_logic = score_logic(red_team_data, green_team_data)
         self.scores = self.score_logic.SCORES
         self.hit_messages = []
         self.current_hit_index = 0
@@ -28,8 +35,19 @@ class PlayActionScreen:
 
         self.game_log = game_log
 
+
+        try:
+            img = Image.open("images/baseicon.jpg")
+            img = img.resize((20,20))
+            self.base_icon = ImageTk.PhotoImage(img)
+        except Exception as e:
+            print("Could not load baseicon.jpg", e)
+            self.base_icon = None
+
         self.radius = 30
         self.border_width = 4
+
+        self.player_widgets = {}
 
         self.canvas = tk.Canvas(root, bg="black", highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
@@ -109,6 +127,7 @@ class PlayActionScreen:
 
         frame.grid_columnconfigure(0, weight=1)
         frame.grid_columnconfigure(1, weight=1)
+        frame.grid_columnconfigure(2, weight=0)
 
         tk.Label(frame, text=label, fg="white", bg="black", font=("Helvetica", 16, "bold")).grid(row=0, column=0, columnspan=2, sticky="n", padx=0, pady=0)
 
@@ -116,13 +135,23 @@ class PlayActionScreen:
         sorted_data = sorted(team_data.items(), key=lambda player_data: player_data[1]['score'], reverse=True)
         
         for i, (equip_id, player_data) in enumerate(sorted_data):
-            tk.Label(frame, text=player_data['name'], fg=color, bg="black", font=("Helvetica", 14, "bold")).grid(row=i+1, column=0, sticky="w", padx=25)
+            # Create frame so base can be added
+            icon_name_frame = tk.Frame(frame, bg="black")
+            icon_name_frame.grid(row=i+1, column=0, sticky="w", padx=5)
+
+            name_label = tk.Label(icon_name_frame, text=player_data['name'], fg=color, bg="black", font=("Helvetica", 14, "bold"))
+            name_label.pack(side="left")
+
             score_label = tk.Label(frame, text=player_data['score'], fg=color, bg="black", font=("Helvetica", 14, "bold"))
             score_label.grid(row=i+1, column=1, sticky="e", padx=0)
             if color == "red":
                 self.red_score_labels[equip_id] = score_label
             elif color == "green":
                 self.green_score_labels[equip_id] = score_label
+            
+            # store widgets so they can be updated
+            if equip_id is not None:
+                self.player_widgets[equip_id] = {"name_label": name_label, "score_label": score_label, "icon_frame": icon_name_frame}
 
         total_label = tk.Label(frame, text=f"{total_score}", fg=color, bg="black", font=("Helvetica", 14, "bold"))
         total_label.place(relx=1.0, rely=1.0, anchor="se", x=0, y=0)
@@ -136,6 +165,13 @@ class PlayActionScreen:
 
         if is_highest:
             self.flash_label(total_label, color, "white")
+            
+    def game_over(self):
+        for _ in range(3):
+            broadcast_message(221)
+            self.running = False
+        print("Game over broadcast sent")
+
 
     def update_scoreboard_timer(self):
         current_time = self.game_timer.get_remaining_time()
@@ -175,6 +211,13 @@ class PlayActionScreen:
                 if int(equip_id) == int(equipment_id):
                     label.config(text=player_data["score"])
         
+        min, sec = map(int, current_time.split(":"))
+
+        total_seconds = min * 60 + sec
+
+        if total_seconds <= 0:
+            self.game_over()
+            return
 
         for message in self.hit_messages:
             self.log_event(message)
@@ -203,7 +246,29 @@ class PlayActionScreen:
         self.game_log_box.insert(tk.END, event_text + "\n")
         self.game_log_box.yview(tk.END)  
         self.game_log_box.config(state=tk.DISABLED)
- 
+
+    def update_ui(self, team_data, attacker_id =None):
+        """Update UI after score or base hit event"""
+        red_team, green_team = team_data
+
+        all_players = red_team + green_team
+
+        for player in all_players:
+            equip_id = player["equip"]
+            has_base = player.get("has_base", False)
+
+            widgets = self.player_widgets.get(equip_id)
+            if not widgets:
+                continue
+
+            name_label = widgets["name_label"]
+            icon_name_frame = widgets["icon_frame"]
+            
+
+            if has_base and "base_icon_label" not in widgets:
+                icon_label = tk.Label(icon_name_frame, image = self.base_icon, bg="black")
+                icon_label.pack(side="left")
+                widgets["base_icon_label"] = icon_label 
 
 # Class to test data
 class TestPlayer:

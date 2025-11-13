@@ -31,12 +31,12 @@ class score_logic:
             equip = player.get("equip")
             name = player.get("name")
             if equip is not None:
-                self.scores[int(equip)] = {"team": "red", "name": name, "score": player.get("score", 0)}
+                self.scores[int(equip)] = {"team": "red", "name": name, "score": player.get("score", 0), "has_base": False}
         for player in self.green_team:
             equip = player.get("equip")
             name = player.get("name")
             if equip is not None:
-                self.scores[int(equip)] = {"team": "green", "name": name, "score": player.get("score", 0)}
+                self.scores[int(equip)] = {"team": "green", "name": name, "score": player.get("score", 0), "has_base": False}
 
 
     # ----------------------------------------------------------
@@ -58,20 +58,25 @@ class score_logic:
         except ValueError:
             print(f"[WARN] Invalid hit: {msg}")
             return
+        
+        print(f"[DEBUG] msg={msg!r}")
+        print(f"[DEBUG] attacker={attacker}, target={target} ({type(target)})")
+        print(f"[DEBUG] scores keys={list(self.scores.keys())}")
 
-        atk = self.scores.get(attacker) # attacker  {team ,name, score}
-        tgt = self.scores.get(target)  # target {team ,name ,score}
-        if not atk or not tgt:
-            print(f"[WARN] Unknown IDs in message {msg}")
-            return
-
-        # base hit
+        
+         # base hit
         if target == 53:
             self._process_base_hit(attacker, "red")
             return
         
         if target == 43:
             self._process_base_hit(attacker, "green")
+            return
+
+        atk = self.scores.get(attacker) # attacker  {team ,name, score}
+        tgt = self.scores.get(target)  # target {team ,name ,score}
+        if not atk or not tgt:
+            print(f"[WARN] Unknown IDs in message {msg}")
             return
 
         # friendly fire
@@ -86,24 +91,28 @@ class score_logic:
         else:
             print(f"[HIT] {atk['name']} ({atk['team']}) → {tgt['name']} ({tgt['team']})")
             atk["score"] += self.ENEMY_HIT_REWARD
-            tgt["score"] += self.FRIENDLY_FIRE_PENALTY
+            # tgt["score"] += self.FRIENDLY_FIRE_PENALTY
             broadcast_equipment_id(target)
 
         self._notify_ui(attacker)
     
     def _process_base_hit(self, attacker_id, base):
         atk = self.scores.get(attacker_id)
+        if not atk:
+            return
 
         # if red base hit (code 53 received)
         if base == "red":
             if atk["team"] == "green":
                 atk["score"] += self.BASE_REWARD
+                atk["has_base"] = True
                 print(f"[BASE HIT] {atk['name']} → Red Base")
                 self._notify_ui(attacker_id)
         # if green base hit (code 43 received)
         elif base == "green":
             if atk["team"] == "red":
                 atk["score"] += self.BASE_REWARD
+                atk["has_base"] = True
                 print(f"[BASE HIT] {atk['name']} → Green Base")
                 self._notify_ui(attacker_id)
 
@@ -117,7 +126,7 @@ class score_logic:
         red = []
         green = []
         for equip, data in self.scores.items():
-            entry = {"name": data["name"], "score": data["score"], "equip": equip}
+            entry = {"name": data["name"], "score": data["score"], "equip": equip, "has_base": bool(data.get("has_base", False))}
             (red if data["team"] == "red" else green).append(entry)
         red.sort(key=lambda x: x["score"], reverse=True)
         green.sort(key=lambda x: x["score"], reverse=True)

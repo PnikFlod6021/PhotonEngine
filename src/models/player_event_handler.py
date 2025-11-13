@@ -15,18 +15,20 @@ class score_logic:
 
         self.red_team = red_team
         self.green_team = green_team
+        self.red_base_available = True
+        self.green_base_available = True
         self.ui_callback = ui_callback 
         self._init_scores()
 
     # ----------------------------------------------------------
     def _init_scores(self):
 		# create a dictionary for each member with a score of 0
-		# {equip_id: {"team": str, "name": str, "score": int}}
+		# {equip_id: {"team": str, "name": str, "score": int, "has_base" : bool}}
         
         for pid, name, equip, in self.red_team.get_players():
-            self.SCORES[int(equip)] = {"team": "red", "name": name, "score": 0}
+            self.SCORES[int(equip)] = {"team": "red", "name": name, "score": 0, "has_base": False}
         for pid, name, equip in self.green_team.get_players():
-            self.SCORES[int(equip)] = {"team": "green", "name": name, "score": 0}
+            self.SCORES[int(equip)] = {"team": "green", "name": name, "score": 0, "has_base": False}
 
     # ----------------------------------------------------------
     def handle_udp_message(self, msg: str):
@@ -46,6 +48,15 @@ class score_logic:
             attacker, target = map(int, msg.split(":")) #Take the message="attacker":"target" return int
         except ValueError:
             print(f"[WARN] Invalid hit: {msg}")
+            return
+        
+        # base hit
+        if target == 53:
+            self._process_base_hit(attacker, "red")
+            return
+        
+        if target == 43:
+            self._process_base_hit(attacker, "green")
             return
        
         atk = self.SCORES.get(attacker) # attacker  {team ,name, score}
@@ -71,13 +82,40 @@ class score_logic:
             broadcast_message(attacker)
             broadcast_message(target)
 
+    def _process_base_hit(self, attacker_id, base):
+        atk = self.SCORES.get(attacker_id)
+        if not atk:
+            return
+
+        # if red base hit (code 53 received)
+        if base == "red" and self.red_base_available == True:
+            if atk["team"] == "green":
+                atk["score"] += self.BASE_REWARD
+                atk["has_base"] = True
+                self.red_base_available = False
+                self.MESSAGES.append(f"[BASE HIT] {atk['name']} → Red Base")
+                print(f"[BASE HIT] {atk['name'] } → Red Base")
+                self._notify_ui(attacker_id)
+        # if green base hit (code 43 received)
+        elif base == "green" and self.green_base_available == True:
+            if atk["team"] == "red":
+                atk["score"] += self.BASE_REWARD
+                atk["has_base"] = True
+                self.green_base_available = False
+                self.MESSAGES.append(f"[BASE HIT] {atk['name']} → Green Base")
+                print(f"[BASE HIT] {atk['name']} → Green Base")
+                self._notify_ui(attacker_id)
+
+    def _notify_ui(self, attacker_id = None):
+        if self.ui_callback:
+            self.ui_callback(self.get_team_data(), attacker_id)
 
     def get_team_data(self):
         """Return current scoreboard for both teams."""
         red = []
         green = []
         for equip, data in self.SCORES.items():
-            entry = {"name": data["name"], "score": data["score"]}
+            entry = {"name": data["name"], "score": data["score"], "equip": equip, "has_base": bool(data.get("has_base", False))}
             (red if data["team"] == "red" else green).append(entry)
         red.sort(key=lambda x: x["score"], reverse=True)
         green.sort(key=lambda x: x["score"], reverse=True)

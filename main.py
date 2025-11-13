@@ -12,6 +12,7 @@ from src.models.teams.player import Player
 from src.views.play_action_screen import PlayActionScreen
 from src.models.UDP.UDP_server import start_receiving
 from src.models.UDP.UDP_client import broadcast_message 
+from src.models.player_event_handler import score_logic
 
 
 
@@ -51,15 +52,16 @@ def main():
 
     red_team_data = red_team_model
     green_team_data = green_team_model
+    game_score_logic = score_logic(red_team_data, green_team_data)
 
 
     players = list_players()
 
     game_log = [{"name": codename, "score": 0, "equip": pid} for pid, codename in players]
 
-    start_receiving()
+    start_receiving(game_score_logic)
     
-    PlayActionScreen(red_team_data, green_team_data, game_log)
+    PlayActionScreen(red_team_data, green_team_data, game_log, score_logic_instance=game_score_logic)
 
 
 
