@@ -140,7 +140,7 @@ class PlayActionScreen:
             icon_name_frame.grid(row=i+1, column=0, sticky="w", padx=5)
 
             name_label = tk.Label(icon_name_frame, text=player_data['name'], fg=color, bg="black", font=("Helvetica", 14, "bold"))
-            name_label.pack(side="left")
+            name_label.pack(side="right")
 
             score_label = tk.Label(frame, text=player_data['score'], fg=color, bg="black", font=("Helvetica", 14, "bold"))
             score_label.grid(row=i+1, column=1, sticky="e", padx=0)
@@ -267,7 +267,7 @@ class PlayActionScreen:
 
             if has_base and "base_icon_label" not in widgets:
                 icon_label = tk.Label(icon_name_frame, image = self.base_icon, bg="black")
-                icon_label.pack(side="left")
+                icon_label.pack(side="right")
                 widgets["base_icon_label"] = icon_label 
 
 # Class to test data
