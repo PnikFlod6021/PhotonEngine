@@ -78,7 +78,6 @@ class score_logic:
             self.MESSAGES.append(f"{atk['name']} hit {tgt['name']}")
             print(f"[HIT] {atk['name']} ({atk['team']}) → {tgt['name']} ({tgt['team']})")
             atk["score"] += self.ENEMY_HIT_REWARD
-            tgt["score"] += self.FRIENDLY_FIRE_PENALTY
             broadcast_message(attacker)
             broadcast_message(target)
 
