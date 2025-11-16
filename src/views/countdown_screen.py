@@ -41,7 +41,7 @@ class CountdownScreen:
                 self.game_audio_handler.play_countdown_audio()
                 audio_played = True
 
-            if remaining == 1:
+            if remaining == 0:
                 # self.screen.fill((0,0,0))
                 # go_txt = self.font.render("GO!", True, (221, 191, 218))
                 # go_rect = go_txt.get_rect(center = (ScreenConstants.SCREEN_WIDTH/2, ScreenConstants.SCREEN_HEIGHT/2))

@@ -1,5 +1,5 @@
 import pygame
-
+import tkinter as tk
 
 from src.views.loading_screen import LoadingScreen
 from src.constants import ScreenConstants
@@ -27,41 +27,9 @@ def main():
 
     pygame.quit()
 
-    player_entry_screen = PlayerEntryGUI()
+    root = tk.Tk()
 
-
-    # Game start countdown
-
-    if not player_entry_screen.has_finished:
-        return
-
-    pygame.init()
-    screen = pygame.display.set_mode((ScreenConstants.SCREEN_WIDTH, ScreenConstants.SCREEN_HEIGHT))
-    pygame.display.set_caption(ScreenConstants.GAME_TITLE)
-
-    countdown = CountdownScreen(screen, duration=30) #Remember to put this back to 30 after testing
-    countdown_finished = countdown.run()
-
-    pygame.quit()
-
-    if not countdown_finished:
-        return
-
-    green_team_model = GreenTeam()
-    red_team_model = RedTeam()
-
-    red_team_data = red_team_model
-    green_team_data = green_team_model
-    game_score_logic = score_logic(red_team_data, green_team_data)
-
-
-    players = list_players()
-
-    game_log = [{"name": codename, "score": 0, "equip": pid} for pid, codename in players]
-
-    start_receiving(game_score_logic)
-    
-    PlayActionScreen(red_team_data, green_team_data, game_log, score_logic_instance=game_score_logic)
+    player_entry_screen = PlayerEntryGUI(root)
 
 
 

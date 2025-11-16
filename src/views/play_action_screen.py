@@ -1,20 +1,23 @@
 import tkinter as tk
+import time
+
 from src.models.Timers.Player_Action_Screen_Timer import GameScreen
 from src.models.teams.green_team import GreenTeam
 from src.models.teams.red_team import RedTeam
 from src.models.game_audio_handler import GameAudioHandler
 from src.models.player_event_handler import score_logic
 from src.models.UDP.UDP_client import broadcast_message
+from src.models.UDP.UDP_server import stop_receiving
 from PIL import Image, ImageTk
 
 class PlayActionScreen:
-    def __init__(self,red_team_data, green_team_data, game_log, score_logic_instance):
+    def __init__(self,root,red_team_data, green_team_data, game_log, score_logic_instance):
         game_audio_handler = GameAudioHandler()
 
-        root = tk.Tk()
-        root.title("Play Action")
-        root.geometry("1200x800")
-        root.configure(bg="black")
+        self.game_window = tk.Toplevel(root)
+        self.game_window.title("Play Action")
+        self.game_window.geometry("1200x800")
+        self.game_window.configure(bg="black")
 
         if score_logic_instance:
             self.score_logic = score_logic_instance
@@ -49,10 +52,10 @@ class PlayActionScreen:
 
         self.player_widgets = {}
 
-        self.canvas = tk.Canvas(root, bg="black", highlightthickness=0)
+        self.canvas = tk.Canvas(self.game_window, bg="black", highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
-        self.game_timer = GameScreen(root)
+        self.game_timer = GameScreen(self.game_window)
         self.game_timer.start_timer()
 
         self.time_text = None
@@ -69,7 +72,7 @@ class PlayActionScreen:
         # self.entry_terminal = EntryTerminalHandler(self.root)
         game_audio_handler.play_random_audio()
 
-        self.root.mainloop()
+        self.game_window.mainloop()
 
     def draw_rounded_rect(self, x1, y1, x2, y2, radius, **kwargs):
         points = [
@@ -112,7 +115,7 @@ class PlayActionScreen:
         self.draw_rounded_rect(620, 50, 1150, 650, self.radius,
                        fill="#0a0d24", outline="yellow", width=self.border_width)
 
-        self.game_log_box = tk.Text(self.canvas, width=58, height=35,bg="#0a0d24", fg="white",font=("Helvetica", 12), wrap="word")
+        self.game_log_box = tk.Text(self.canvas, width=58, height=35,bg="#0a0d24", fg="white",font=("Arial", 18, "bold"), wrap="word")
 
         self.canvas.create_window(620, 55, window=self.game_log_box,anchor="nw", width=530, height=595)
 
@@ -163,14 +166,21 @@ class PlayActionScreen:
         else:
             self.green_total_label = total_label
 
-        if is_highest:
-            self.flash_label(total_label, color, "white")
             
     def game_over(self):
+        stop_receiving()
+
         for _ in range(3):
             broadcast_message(221)
+            time.sleep(1)
             self.running = False
         print("Game over broadcast sent")
+
+        return_button = tk.Button(self.game_window,text="Return to Terminal", command=self.return_to_entry).place(x=600,y=680)
+    
+    def return_to_entry(self):
+        self.game_window.destroy()
+        self.root.deiconify()
 
 
     def update_scoreboard_timer(self):
@@ -180,8 +190,8 @@ class PlayActionScreen:
         self.scores = self.score_logic.SCORES
 
         if len(self.score_logic.MESSAGES) > self.current_hit_index:
-            self.hit_messages = self.score_logic.MESSAGES[(self.current_hit_index + 1):]
-            self.current_hit_index = len(self.hit_messages)
+            self.hit_messages = self.score_logic.MESSAGES[self.current_hit_index:]
+            self.current_hit_index = len(self.score_logic.MESSAGES)
         else:
             self.hit_messages = []
 
@@ -191,11 +201,12 @@ class PlayActionScreen:
         self.red_total_label.config(text=red_total)
         self.green_total_label.config(text=green_total)
 
+        self.stop_flashing(self.red_total_label)
+        self.stop_flashing(self.green_total_label)
+
         if red_total > green_total:
-            self.stop_flashing(self.green_total_label)
             self.flash_label(self.red_total_label, "red", "white")
         elif green_total > red_total:
-            self.stop_flashing(self.red_total_label)
             self.flash_label(self.green_total_label, "green", "white")
         else:
             self.flash_label(self.red_total_label, "red", "white")
@@ -223,22 +234,24 @@ class PlayActionScreen:
             self.log_event(message)
         
 
-        self.root.after(500, self.update_scoreboard_timer)
+        self.game_window.after(1000, self.update_scoreboard_timer)
 
 
     def flash_label(self, label, color1, color2, interval=500):
+        if label in self.flash_jobs:
+            return  
         def toggle():
             current_color = label.cget("fg")
             new_color = color2 if current_color == color1 else color1
             label.config(fg=new_color)
-            job_id = self.root.after(interval, toggle)
+            job_id = self.game_window.after(interval, toggle)
             self.flash_jobs[label] = job_id
         toggle()
 
     def stop_flashing(self, label):
         job_id = self.flash_jobs.pop(label, None)
         if job_id:
-            self.root.after_cancel(job_id)
+            self.game_window.after_cancel(job_id)
             label.config(fg=label.original_color)  # Reset to original
 
     def log_event(self, event_text):

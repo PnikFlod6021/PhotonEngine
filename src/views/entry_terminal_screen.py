@@ -1,12 +1,17 @@
 import tkinter as tk
+import pygame
 
 from src.models.entry_terminal_handler import EntryTerminalHandler
-from src.constants import TerminalConstants
+from src.views.play_action_screen import PlayActionScreen
+from src.constants import TerminalConstants, ScreenConstants
+from src.models.teams.green_team import GreenTeam
+from src.models.teams.red_team import RedTeam
+from src.views.countdown_screen import CountdownScreen
 
 class PlayerEntryGUI:
-    def __init__(self):
+    def __init__(self, root):
         self.has_finished = False
-        self.root = tk.Tk()
+        self.root = root
         self.terminal_handler = EntryTerminalHandler(self.root)
         self.createGUI()
 
@@ -137,4 +142,22 @@ class PlayerEntryGUI:
     
     def finish_entry(self, event):
         self.has_finished = True
-        self.root.destroy()
+        self.root.iconify()
+
+        pygame.init()
+        screen = pygame.display.set_mode((ScreenConstants.SCREEN_WIDTH, ScreenConstants.SCREEN_HEIGHT))
+        pygame.display.set_caption(ScreenConstants.GAME_TITLE)
+
+        countdown = CountdownScreen(screen, duration=30) #Remember to put this back to 30 after testing
+        countdown_finished = countdown.run()
+
+        
+        pygame.quit()
+
+        from src.models.UDP.UDP_server import start_receiving
+        from src.models.player_event_handler import score_logic
+
+        score_logic = score_logic(RedTeam(), GreenTeam())
+        start_receiving(score_logic)
+
+        PlayActionScreen(self.root, RedTeam(), GreenTeam(), '', score_logic_instance=score_logic)
