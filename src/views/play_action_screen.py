@@ -212,15 +212,38 @@ class PlayActionScreen:
             self.flash_label(self.red_total_label, "red", "white")
             self.flash_label(self.green_total_label, "green", "white")
 
-        for equipment_id,player_data in self.scores.items():
-            for equip_id, label in self.red_score_labels.items():
-                if int(equip_id) == int(equipment_id):
-                    label.config(text=player_data["score"])
+        red_sorted = sorted([(eid, pdata) for eid, pdata in self.scores.items() if pdata["team"] == "red"],
+        key=lambda item: item[1]["score"],
+        reverse=True) 
+        green_sorted = sorted([(eid, pdata) for eid, pdata in self.scores.items() if pdata["team"] == "green"],
+        key=lambda item: item[1]["score"],
+        reverse=True) 
 
-        for equipment_id,player_data in self.scores.items():
-            for equip_id, label in self.green_score_labels.items():
-                if int(equip_id) == int(equipment_id):
-                    label.config(text=player_data["score"])
+        for row, (equip_id, pdata) in enumerate(red_sorted):
+            widgets = self.player_widgets.get(equip_id)
+            if widgets:
+                widgets["name_label"].config(text=pdata["name"])
+                widgets["score_label"].config(text=pdata["score"])
+                widgets["icon_frame"].grid(row=row+1, column=0, sticky="w", padx=5)
+                widgets["score_label"].grid(row=row+1, column=1, sticky="e",padx=0)
+
+        for row, (equip_id, pdata) in enumerate(green_sorted):
+            widgets = self.player_widgets.get(equip_id)
+            if widgets:
+                widgets["name_label"].config(text=pdata["name"])
+                widgets["score_label"].config(text=pdata["score"])
+                widgets["icon_frame"].grid(row=row+1, column=0, sticky="w", padx=5)
+                widgets["score_label"].grid(row=row+1, column=1, sticky="e",padx=0)
+        
+        # for equipment_id,player_data in self.scores.items():
+        #     for equip_id, label in self.red_score_labels.items():
+        #         if int(equip_id) == int(equipment_id):
+        #             label.config(text=player_data["score"])
+
+        # for equipment_id,player_data in self.scores.items():
+        #     for equip_id, label in self.green_score_labels.items():
+        #         if int(equip_id) == int(equipment_id):
+        #             label.config(text=player_data["score"])
         
         min, sec = map(int, current_time.split(":"))
 
